@@ -1,4 +1,4 @@
-app = "CICD-PravijUpreti"  # Change to unique name
+app = "cicd-pravij-upreti"
 
 [build]
 
