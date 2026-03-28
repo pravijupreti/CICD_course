@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, useMatch } from 'react-router-dom'
+import { Routes, Route, useMatch } from 'react-router-dom'  // Remove Router import
 import { useApi } from './useApi'
 import LoadingSpinner from './LoadingSpinner'
 import ErrorMessage from './ErrorMessage'
@@ -33,14 +33,12 @@ const App = () => {
   }
 
   return (
-    <Router>  {/* Add this wrapper */}
-      <Routes>
-        <Route exact path="/" element={<PokemonList pokemonList={pokemonList} />} />
-        <Route exact path="/pokemon/:name" element={
-          <PokemonPage pokemonList={pokemonList} previous={previous} next={next} />
-        } />
-      </Routes>
-    </Router>
+    <Routes>  {/* No Router wrapper here - just Routes */}
+      <Route exact path="/" element={<PokemonList pokemonList={pokemonList} />} />
+      <Route exact path="/pokemon/:name" element={
+        <PokemonPage pokemonList={pokemonList} previous={previous} next={next} />
+      } />
+    </Routes>
   )
 }
 
