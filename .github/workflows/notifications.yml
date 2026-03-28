@@ -1,17 +1,29 @@
-- name: Discord Success Notification
-  if: success()
-  uses: sarisia/actions-status-discord@v1
-  with:
-    webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-    title: "✅ Deployment Successful"
+name: Notifications
 
-- name: Discord Failure Notification
-  if: failure()
-  uses: sarisia/actions-status-discord@v1
-  with:
-  webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-  title: "❌ Build Failed"
-  description: |
-    **Commit:** `${{ github.sha }}`
-    **Author:** ${{ github.actor }}
-    **Branch:** ${{ github.ref_name }}
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Discord Success Notification
+        if: success()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "Deployment Successful"
+
+      - name: Discord Failure Notification
+        if: failure()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          title: "Build Failed"
+          description: |
+            **Commit:** `${{ github.sha }}`
+            **Author:** ${{ github.actor }}
+            **Branch:** ${{ github.ref_name }}
