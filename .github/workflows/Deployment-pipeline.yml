@@ -71,7 +71,7 @@ jobs:
       # Discord notification on success
       - name: Discord notification (success)
         if: success()
-        uses: Ilshidur/action-discord@v2
+        uses: Ilshidur/action-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: 'CI Bot'
