@@ -39,14 +39,16 @@ jobs:
       - name: Prepare Discord message (failure)
         if: failure()
         run: |
-          echo "DISCORD_MESSAGE=**Build failed**
-Repository: ${{ github.repository }}
-Commit: ${{ github.sha }}
-Message: ${{ github.event.head_commit.message }}
-Author: ${{ github.actor }}
-Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "DISCORD_MESSAGE<<EOF" >> $GITHUB_ENV
+          echo "**Build failed ❌**" >> $GITHUB_ENV
+          echo "Repository: ${{ github.repository }}" >> $GITHUB_ENV
+          echo "Commit: ${{ github.sha }}" >> $GITHUB_ENV
+          echo "Message: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+          echo "Author: ${{ github.actor }}" >> $GITHUB_ENV
+          echo "Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-      # Discord notification on failure
+      # Send Discord notification on failure
       - name: Discord notification (failure)
         if: failure()
         uses: Ilshidur/action-discord@master
@@ -77,15 +79,16 @@ Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
       - name: Prepare Discord message (success)
         if: success()
         run: |
-          echo "DISCORD_MESSAGE=**Deployment successful**
-Repository: ${{ github.repository }}
-Commit: ${{ github.sha }}
-Message: ${{ github.event.head_commit.message }}
-Author: ${{ github.actor }}
-Branch: ${{ github.ref_name }}
-Version tag: ${{ steps.bump_version.outputs.new_tag || 'N/A' }}" >> $GITHUB_ENV
+          echo "DISCORD_MESSAGE<<EOF" >> $GITHUB_ENV
+          echo "**Deployment successful 🚀**" >> $GITHUB_ENV
+          echo "Repository: ${{ github.repository }}" >> $GITHUB_ENV
+          echo "Commit: ${{ github.sha }}" >> $GITHUB_ENV
+          echo "Message: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+          echo "Author: ${{ github.actor }}" >> $GITHUB_ENV
+          echo "Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "Version tag: ${{ steps.bump_version.outputs.new_tag || 'N/A' }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-      # Discord notification on success
       - name: Discord notification (success)
         if: success()
         uses: Ilshidur/action-discord@master
