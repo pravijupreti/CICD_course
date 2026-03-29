@@ -14,78 +14,6 @@ permissions:
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
-
-    if: ${{ !contains(join(github.event.commits.*.message, ' '), '#skip') || github.event_name == 'pull_request' }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test
-        run: npm test || true
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Discord notification (failure)
-        if: failure()
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          DISCORD_USERNAME: CI Bot
-          DISCORD_EMBEDS: |
-            [
-              {
-                "title": "Build failed",
-                "description": "Repository: ${{ github.repository }}\nCommit: ${{ github.event.head_commit.message }}",
-                "color": 15548997
-              }
-            ]
-
-
-  tag_release:
-    needs: [simple_deployment_pipeline]
-    runs-on: ubuntu-latest
-
-    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.75.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEFAULT_BUMP: patch
-          WITH_V: true
-
-name: Deployment pipeline
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize]
-
-permissions:
-  contents: write
-
-jobs:
-  simple_deployment_pipeline:
-    runs-on: ubuntu-latest
     if: ${{ !contains(join(github.event.commits.*.message, ' '), '#skip') || github.event_name == 'pull_request' }}
 
     steps:
@@ -133,12 +61,14 @@ jobs:
           fetch-depth: 0
 
       - name: Bump version and push tag
+        id: bump_version
         uses: anothrNick/github-tag-action@1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
           WITH_V: true
 
+      # Discord notification on success
       - name: Discord notification (success)
         if: success()
         uses: Ilshidur/action-discord@v2
