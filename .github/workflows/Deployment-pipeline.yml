@@ -8,37 +8,31 @@ on:
     branches: [main]
     types: [opened, synchronize]
 
+# Set default permissions at workflow level
 permissions:
-  contents: read
+  contents: read  # Default is read
 
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read  # Read-only for this job
     
     steps:
       - uses: actions/checkout@v4
-      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
       - name: Install dependencies
         run: npm ci
-      
       - name: Lint
         run: npm run lint
-      
       - name: Test
         run: npm test || true
-      
       - name: Build frontend
         run: npm run build
-      
       - name: Install flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
-      
       - name: Deploy to Fly.io
         run: flyctl deploy --remote-only
         env:
@@ -49,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
     permissions:
-      contents: write
+      contents: write  # Write permission for tagging
     
     steps:
       - uses: actions/checkout@v4
