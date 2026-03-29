@@ -35,9 +35,10 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      # Discord notification on failure
       - name: Discord notification (failure)
         if: failure()
-        uses: Ilshidur/action-discord@v1
+        uses: Ilshidur/action-discord@master
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: 'CI Bot'
@@ -67,9 +68,10 @@ jobs:
           DEFAULT_BUMP: patch
           WITH_V: true
 
+      # Discord notification on success
       - name: Discord notification (success)
         if: success()
-        uses: Ilshidur/action-discord@v1
+        uses: Ilshidur/action-discord@master
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: 'CI Bot'
