@@ -30,37 +30,30 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test || true
+        run: npm test   # removed || true so failure actually triggers
 
       - name: Build frontend
         run: npm run build
 
-      # Prepare Discord message on failure
-      - name: Prepare Discord message (failure)
-        if: failure()
-        run: |
-          echo "DISCORD_MESSAGE<<EOF" >> $GITHUB_ENV
-          echo "**Build failed ❌**" >> $GITHUB_ENV
-          echo "Repository: ${{ github.repository }}" >> $GITHUB_ENV
-          echo "Commit: ${{ github.sha }}" >> $GITHUB_ENV
-          echo "Message: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
-          echo "Author: ${{ github.actor }}" >> $GITHUB_ENV
-          echo "Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      # Send Discord notification on failure
+      # Discord message if something fails
       - name: Discord notification (failure)
         if: failure()
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_USERNAME: CI Bot
-          DISCORD_MESSAGE: ${{ env.DISCORD_MESSAGE }}
+          DISCORD_MESSAGE: |
+            ❌ **Build failed**
+
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            Branch: ${{ github.ref_name }}
 
   tag_release:
     needs: [simple_deployment_pipeline]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+    if: ${{ github.event_name == 'push' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -75,24 +68,18 @@ jobs:
           DEFAULT_BUMP: patch
           WITH_V: true
 
-      # Prepare Discord message on success
-      - name: Prepare Discord message (success)
-        if: success()
-        run: |
-          echo "DISCORD_MESSAGE<<EOF" >> $GITHUB_ENV
-          echo "**Deployment successful 🚀**" >> $GITHUB_ENV
-          echo "Repository: ${{ github.repository }}" >> $GITHUB_ENV
-          echo "Commit: ${{ github.sha }}" >> $GITHUB_ENV
-          echo "Message: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
-          echo "Author: ${{ github.actor }}" >> $GITHUB_ENV
-          echo "Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "Version tag: ${{ steps.bump_version.outputs.new_tag || 'N/A' }}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
+      # Discord message when deployment succeeds
       - name: Discord notification (success)
         if: success()
         uses: Ilshidur/action-discord@master
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_USERNAME: CI Bot
-          DISCORD_MESSAGE: ${{ env.DISCORD_MESSAGE }}
+          DISCORD_MESSAGE: |
+            🚀 **Deployment successful**
+
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            Branch: ${{ github.ref_name }}
+            Version: ${{ steps.bump_version.outputs.new_tag }}
