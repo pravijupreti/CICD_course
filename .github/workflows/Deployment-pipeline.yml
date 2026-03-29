@@ -8,52 +8,46 @@ on:
     branches: [main]
     types: [opened, synchronize]
 
+permissions:
+  contents: write
+
 jobs:
-  # Job 1: Build, test, and deploy
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Lint
         run: npm run lint
-      
+
       - name: Test
         run: npm test || true
-      
+
       - name: Build frontend
         run: npm run build
-      
-      - name: Install flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@master
-      
-      - name: Deploy to Fly.io
-        run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.CICD_TOKEN }}
-  
-  # Job 2: Create version tag (only after successful deployment)
+
   tag_release:
     needs: [simple_deployment_pipeline]
     runs-on: ubuntu-latest
+
     if: ${{ github.event_name == 'push' }}
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
           DEFAULT_BUMP: patch
+          WITH_V: true
