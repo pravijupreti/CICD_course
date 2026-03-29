@@ -35,6 +35,17 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      # Prepare Discord message on failure
+      - name: Prepare Discord message (failure)
+        if: failure()
+        run: |
+          echo "DISCORD_MESSAGE=**Build failed**
+Repository: ${{ github.repository }}
+Commit: ${{ github.sha }}
+Message: ${{ github.event.head_commit.message }}
+Author: ${{ github.actor }}
+Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
+
       # Discord notification on failure
       - name: Discord notification (failure)
         if: failure()
@@ -42,13 +53,7 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_USERNAME: CI Bot
-          DISCORD_MESSAGE: |
-            **Build failed**
-            Repository: `${{ github.repository }}`
-            Commit: `${{ github.sha }}`
-            Message: `${{ github.event.head_commit.message }}`
-            Author: `${{ github.actor }}`
-            Branch: `${{ github.ref_name }}`
+          DISCORD_MESSAGE: ${{ env.DISCORD_MESSAGE }}
 
   tag_release:
     needs: [simple_deployment_pipeline]
@@ -68,6 +73,18 @@ jobs:
           DEFAULT_BUMP: patch
           WITH_V: true
 
+      # Prepare Discord message on success
+      - name: Prepare Discord message (success)
+        if: success()
+        run: |
+          echo "DISCORD_MESSAGE=**Deployment successful**
+Repository: ${{ github.repository }}
+Commit: ${{ github.sha }}
+Message: ${{ github.event.head_commit.message }}
+Author: ${{ github.actor }}
+Branch: ${{ github.ref_name }}
+Version tag: ${{ steps.bump_version.outputs.new_tag || 'N/A' }}" >> $GITHUB_ENV
+
       # Discord notification on success
       - name: Discord notification (success)
         if: success()
@@ -75,11 +92,4 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_USERNAME: CI Bot
-          DISCORD_MESSAGE: |
-            **Deployment successful**
-            Repository: `${{ github.repository }}`
-            Commit: `${{ github.sha }}`
-            Message: `${{ github.event.head_commit.message }}`
-            Author: `${{ github.actor }}`
-            Branch: `${{ github.ref_name }}`
-            Version tag: `${{ steps.bump_version.outputs.new_tag || 'N/A' }}`
+          DISCORD_MESSAGE: ${{ env.DISCORD_MESSAGE }}
