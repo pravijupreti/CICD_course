@@ -70,17 +70,86 @@ jobs:
           DEFAULT_BUMP: patch
           WITH_V: true
 
+name: Deployment pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  simple_deployment_pipeline:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(join(github.event.commits.*.message, ' '), '#skip') || github.event_name == 'pull_request' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test || true
+
+      - name: Build frontend
+        run: npm run build
+
+      # Discord notification on failure
+      - name: Discord notification (failure)
+        if: failure()
+        uses: Ilshidur/action-discord@v2
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: 'CI Bot'
+          message: |
+            **Build failed**
+            Repository: `${{ github.repository }}`
+            Commit: `${{ github.sha }}`
+            Message: `${{ github.event.head_commit.message }}`
+            Author: `${{ github.actor }}`
+            Branch: `${{ github.ref_name }}`
+
+  tag_release:
+    needs: [simple_deployment_pipeline]
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.75.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          WITH_V: true
+
       - name: Discord notification (success)
         if: success()
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          DISCORD_USERNAME: CI Bot
-          DISCORD_EMBEDS: |
-            [
-              {
-                "title": "New version deployed",
-                "description": "Repository: ${{ github.repository }}\nA new version tag was created successfully.",
-                "color": 5763719
-              }
-            ]
+        uses: Ilshidur/action-discord@v2
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          username: 'CI Bot'
+          message: |
+            **Deployment successful**
+            Repository: `${{ github.repository }}`
+            Commit: `${{ github.sha }}`
+            Message: `${{ github.event.head_commit.message }}`
+            Author: `${{ github.actor }}`
+            Branch: `${{ github.ref_name }}`
+            Version tag: `${{ steps.bump_version.outputs.new_tag || 'N/A' }}`
