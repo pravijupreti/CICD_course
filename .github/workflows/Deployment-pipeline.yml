@@ -1,4 +1,4 @@
-name: Deployment pipeline versioning
+name: Deployment pipeline
 
 on:
   push:
@@ -9,29 +9,36 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  contents: read  # Default permission
+  contents: read
 
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
     permissions:
-      contents: read  # Read-only for this job
+      contents: read
     
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      
       - name: Install dependencies
         run: npm ci
+      
       - name: Lint
         run: npm run lint
+      
       - name: Test
         run: npm test || true
+      
       - name: Build frontend
         run: npm run build
+      
       - name: Install flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
+      
       - name: Deploy to Fly.io
         run: flyctl deploy --remote-only
         env:
@@ -42,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
     permissions:
-      contents: write  # Write permission for tagging
+      contents: write
     
     steps:
       - uses: actions/checkout@v4
