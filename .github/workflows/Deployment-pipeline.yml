@@ -1,4 +1,4 @@
-name: Deployment pipeline-versioning
+name: Deployment pipeline versioning
 
 on:
   push:
@@ -8,43 +8,41 @@ on:
     branches: [main]
     types: [opened, synchronize]
 
+permissions:
+  contents: read  # Default permission
+
 jobs:
-  # Job 1: Build, test, and deploy
   simple_deployment_pipeline:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Read-only for this job
     
     steps:
       - uses: actions/checkout@v4
-      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
       - name: Install dependencies
         run: npm ci
-      
       - name: Lint
         run: npm run lint
-      
       - name: Test
         run: npm test || true
-      
       - name: Build frontend
         run: npm run build
-      
       - name: Install flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
-      
       - name: Deploy to Fly.io
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.CICD_TOKEN }}
   
-  # Job 2: Create version tag (only after successful deployment)
   tag_release:
     needs: [simple_deployment_pipeline]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
+    permissions:
+      contents: write  # Write permission for tagging
     
     steps:
       - uses: actions/checkout@v4
