@@ -39,10 +39,10 @@ jobs:
       - name: Discord notification (failure)
         if: failure()
         uses: Ilshidur/action-discord@master
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: 'CI Bot'
-          message: |
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: CI Bot
+          DISCORD_MESSAGE: |
             **Build failed**
             Repository: `${{ github.repository }}`
             Commit: `${{ github.sha }}`
@@ -72,10 +72,10 @@ jobs:
       - name: Discord notification (success)
         if: success()
         uses: Ilshidur/action-discord@master
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          username: 'CI Bot'
-          message: |
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: CI Bot
+          DISCORD_MESSAGE: |
             **Deployment successful**
             Repository: `${{ github.repository }}`
             Commit: `${{ github.sha }}`
