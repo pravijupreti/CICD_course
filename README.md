@@ -16,3 +16,6 @@ Start by running `npm install` inside the project folder
 fly deployed link: "https://cicd-pravij-upreti.fly.dev"
 
 render deployed link : "https://cicd-course.onrender.com/"
+
+
+extercise 21 "https://github.com/pravijupreti/CICDExercise.git"
